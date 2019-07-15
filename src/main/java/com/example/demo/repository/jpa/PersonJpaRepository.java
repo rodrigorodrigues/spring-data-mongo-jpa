@@ -5,6 +5,14 @@ import com.example.demo.repository.PersonRepository;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
+/**
+ * Check more details at https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#repositories.query-methods.query-creation
+ */
 @Profile({"default", "jpa"})
 public interface PersonJpaRepository extends JpaRepository<Person, String>, PersonRepository {
+    List<Person> findByNameEndingWithOrderByName(String name);
+
+    Integer countByNameContaining(String name);
 }

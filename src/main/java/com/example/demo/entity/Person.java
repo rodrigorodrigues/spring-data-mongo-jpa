@@ -1,5 +1,7 @@
 package com.example.demo.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
@@ -12,6 +14,8 @@ import javax.validation.constraints.NotEmpty;
 @Entity
 @Document
 @NoArgsConstructor
+@Builder
+@AllArgsConstructor
 public class Person {
     @Id
     @javax.persistence.Id

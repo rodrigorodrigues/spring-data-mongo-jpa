@@ -1,21 +1,20 @@
 package com.example.demo;
 
-import static org.assertj.core.api.Java6Assertions.assertThat;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.Test;
 
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.junit.Test;
 
+import static org.assertj.core.api.Java6Assertions.assertThat;
+
+@Slf4j
 public class MultiThreadTests {
     Random random = new Random();
 
@@ -23,12 +22,27 @@ public class MultiThreadTests {
         try {
             TimeUnit.MILLISECONDS.sleep(random.nextInt(100));
             int integer = random.nextInt(10);
-            System.out.println(String.format("thread: %s\tinteger: %s\ttime: %s", Thread.currentThread().getName(), integer, ZonedDateTime
-                .now()));
+            log.info("thread: {}\tinteger: {}\ttime: {}", Thread.currentThread().getName(), integer, ZonedDateTime
+                .now());
             return integer;
         } catch (InterruptedException ie) {
             throw new RuntimeException(ie);
         }
+    }
+
+    @Test
+    public void testAtomicInteger() { //slows as testFutureGet()
+        AtomicInteger atomicInteger = new AtomicInteger();
+
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+
+        Long time = System.currentTimeMillis();
+        IntStream.range(0, 100)
+                .forEach(i -> atomicInteger.updateAndGet(sum -> sum + getFuture(executorService).applyAsInt(i)));
+
+        assertThat(atomicInteger.get()).isGreaterThanOrEqualTo(10);
+        log.info("Time spent: {}", (System.currentTimeMillis() - time));
+        executorService.shutdown();
     }
 
     @Test
@@ -42,7 +56,7 @@ public class MultiThreadTests {
             .sum();
 
         assertThat(total).isGreaterThanOrEqualTo(10);
-        System.out.println(String.format("Time spent: %s", (System.currentTimeMillis() - time)));
+        log.info("Time spent: {}", (System.currentTimeMillis() - time));
         executorService.shutdown();
     }
 
@@ -57,7 +71,7 @@ public class MultiThreadTests {
             .collect(Collectors.toList());
 
         assertThat(futures.stream().mapToInt(getFuture()).sum()).isGreaterThanOrEqualTo(10);
-        System.out.println(String.format("Time spent: %s", (System.currentTimeMillis() - time)));
+        log.info("Time spent: {}", (System.currentTimeMillis() - time));
         executorService.shutdown();
     }
 
@@ -72,7 +86,7 @@ public class MultiThreadTests {
             .collect(Collectors.toList());
 
         assertThat(futures.parallelStream().mapToInt(getFuture()).sum()).isGreaterThanOrEqualTo(10);
-        System.out.println(String.format("Time spent: %s", (System.currentTimeMillis() - time)));
+        log.info("Time spent: {}", (System.currentTimeMillis() - time));
         executorService.shutdown();
     }
 
@@ -90,7 +104,7 @@ public class MultiThreadTests {
                 .thenApply(v -> futures.stream().mapToInt(CompletableFuture::join).sum())
                 .get()
         ).isGreaterThanOrEqualTo(10);
-        System.out.println(String.format("Time spent: %s", (System.currentTimeMillis() - time)));
+        log.info("Time spent: {}", (System.currentTimeMillis() - time));
     }
 
     private ToIntFunction<Integer> getFuture(ExecutorService executorService) {

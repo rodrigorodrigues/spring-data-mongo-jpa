@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
@@ -26,6 +27,7 @@ public class DemoApplication implements WebMvcConfigurer {
 		SpringApplication.run(DemoApplication.class, args);
 	}
 
+	@Profile("!prod")
 	@Bean
 	CommandLineRunner insertOnLoad(PersonService personService) {
 		return args -> {

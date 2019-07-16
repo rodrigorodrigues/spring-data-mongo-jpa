@@ -9,4 +9,8 @@ import java.util.List;
 @NoRepositoryBean
 public interface PersonRepository extends CrudRepository<Person, String> {
     List<Person> findAll();
+
+    List<Person> findByNameEndingWithOrderByName(String name);
+
+    Integer countByNameContaining(String name);
 }

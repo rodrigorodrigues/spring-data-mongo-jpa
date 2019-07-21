@@ -1,5 +1,6 @@
 package com.example.demo.repository.jpa;
 
+import com.example.demo.entity.CamisaTamanho;
 import com.example.demo.entity.Person;
 import com.example.demo.service.PersonService;
 import org.junit.After;
@@ -12,6 +13,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.persistence.NoResultException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,5 +60,26 @@ public class PersonJpaRepositoryTest {
         Integer count = repository.countByNameContaining("r");
 
         assertThat(count).isEqualTo(2);
+    }
+
+    @Test
+    public void testWithJersey() {
+        entityManager.persist(Person.builder().id("AAS").name("Test Valid Jersey Id").camisaTamanho(CamisaTamanho.M).build());
+
+        Person person = (Person) entityManager.getEntityManager().createNativeQuery("SELECT * FROM Person p WHERE p.camisa_tamanho = :camisaTamanho", Person.class)
+                .setParameter("camisaTamanho", 2)
+                .getSingleResult();
+
+        assertThat(person).isNotNull();
+        assertThat(person.getCamisaTamanho()).isEqualTo(CamisaTamanho.M);
+    }
+
+    @Test(expected = NoResultException.class)
+    public void testWithInvalidJerseyId() {
+        entityManager.persist(Person.builder().id("AAZ").name("Test Invalid Jersey Id").camisaTamanho(CamisaTamanho.M).build());
+
+        entityManager.getEntityManager().createNativeQuery("SELECT * FROM Person p WHERE p.camisa_tamanho = :camisaTamanho", Person.class)
+                .setParameter("camisaTamanho", 0)
+                .getSingleResult();
     }
 }
